@@ -303,6 +303,16 @@ function loadBase64() {
 	load(false, atob(document.querySelector("#exportfield").value));
 }
 
+function loadFromEID() {
+	let xhr = new XMLHttpRequest();
+	xhr.open("GET", "https://api.adhd.energy/egg_inc/epic_research/calculator/json")
+	xhr.setRequestHeader("X-Egg-Inc-ID", document.querySelector("#eggincid").value)
+	xhr.send()
+
+	xhr.onload = function () {
+		load(false, xhr.response)
+	}
+}
 
 // Helper methods for dynamic data calculations, refreshing UI
 function calculate() {
@@ -310,7 +320,7 @@ function calculate() {
 	var totalSpent = 0;
 	var totalDesiredLevels = 0;
 	var totalDesiredCost = 0;
-	_.each(upgrades, function(upgrade, key) {
+	_.each(upgrades, function (upgrade, key) {
 		// Statistics
 		var spent = 0;
 		for (i = 0; i <= userData.upgrades[key] - 1; i++) {
@@ -369,11 +379,11 @@ function calculate() {
 	document.querySelector("#crackpiggy").disabled = userData.piggyBank < 300;
 
 	// Update truckload options based on piggy level
-	var truckloadQty = (10000 + (userData.piggyLevel-1) * 2500);
+	var truckloadQty = (10000 + (userData.piggyLevel - 1) * 2500);
 	document.querySelector("#opt-truck").innerHTML = "Truckload (" + truckloadQty.toLocaleString() + " @ $19.99)";
-	var palletQty = (4400 + (userData.piggyLevel-1) * 1100);
+	var palletQty = (4400 + (userData.piggyLevel - 1) * 1100);
 	document.querySelector("#opt-pallet").innerHTML = "Pallet (" + palletQty.toLocaleString() + " @ $9.99)";
-	var crateQty = (2000 + (userData.piggyLevel-1) * 500);
+	var crateQty = (2000 + (userData.piggyLevel - 1) * 500);
 	document.querySelector("#opt-crate").innerHTML = "Big Crate (" + crateQty.toLocaleString() + " @ $4.99)";
 
 	// Calculate remaining eggs
@@ -384,7 +394,7 @@ function calculate() {
 	}
 	else {
 		// Recalculate a full total including discount
-		_.each(upgrades, function(upgrade, key) {
+		_.each(upgrades, function (upgrade, key) {
 			var discountMultiplier = getDiscountMultiplier(key);
 			for (i = userData.upgrades[key]; i < upgrades[key].costs.length; i++) {
 				remaining += upgrade.costs[i] - Math.floor(upgrade.costs[i] * discountMultiplier);
@@ -440,14 +450,14 @@ function getPiggyBankBonus(level) {
 }
 
 function populateInputs() {
-	_.each(upgrades, function(upgrade, key) {
+	_.each(upgrades, function (upgrade, key) {
 		document.querySelector("#lvl-" + key).value = userData.upgrades[key];
 		updateLevel(key, true);
 		document.querySelector("#fut-inc-" + key).value = userData.increase[key];
 		document.querySelector("#fut-inc-" + key).max = upgrade.costs.length - userData.upgrades[key];
 		updateIncrease(key);
 	});
-	_.each(userData.columns, function(value, key) {
+	_.each(userData.columns, function (value, key) {
 		document.querySelector("#chk" + key).checked = userData.columns[key];
 		updateColumn(key, userData.columns[key]);
 	});
@@ -620,13 +630,13 @@ function stripeRows(rows) {
 }
 
 // Initialize data
-window.onload = function() {
+window.onload = function () {
 	if (localStorage.userData === undefined) {
 		localStorage.userData = JSON.stringify(initialUserData);
 	}
 
-	_.each(upgrades, function(upgrade, key) {
-		upgrade.total = upgrade.costs.reduce(function(prev, cur){ return prev + cur; } );
+	_.each(upgrades, function (upgrade, key) {
+		upgrade.total = upgrade.costs.reduce(function (prev, cur) { return prev + cur; });
 		totals.cost += upgrade.total;
 		totals.levels += upgrade.costs.length;
 	});
@@ -645,21 +655,21 @@ window.onload = function() {
 	populateInputs();
 
 	// Set up events
-	_.each(upgrades, function(upgrade, key) {
-		document.querySelector("#lvl-" + key).addEventListener("change", function() { userUpdateLevel(key, true); });
-		document.querySelector("#fut-lvl-" + key).addEventListener("change", function() { userUpdateLevel(key, false); });
-		document.querySelector("#fut-inc-" + key).addEventListener("change", function() { userUpdateIncrease(key); });
-		document.querySelector("#fut-buy-" + key).addEventListener("change", function() { buy(key); });
+	_.each(upgrades, function (upgrade, key) {
+		document.querySelector("#lvl-" + key).addEventListener("change", function () { userUpdateLevel(key, true); });
+		document.querySelector("#fut-lvl-" + key).addEventListener("change", function () { userUpdateLevel(key, false); });
+		document.querySelector("#fut-inc-" + key).addEventListener("change", function () { userUpdateIncrease(key); });
+		document.querySelector("#fut-buy-" + key).addEventListener("change", function () { buy(key); });
 	});
 
-	_.each(userData.columns, function(val, key) {
-		document.querySelector("#chk" + key).addEventListener("change", function(ev) { userUpdateColumn(key, ev.target.checked); });
+	_.each(userData.columns, function (val, key) {
+		document.querySelector("#chk" + key).addEventListener("change", function (ev) { userUpdateColumn(key, ev.target.checked); });
 	});
 
-	document.querySelector("#sethidecompleted").addEventListener("change", function(ev) { setRowsHidden(ev.target.checked); });
+	document.querySelector("#sethidecompleted").addEventListener("change", function (ev) { setRowsHidden(ev.target.checked); });
 
 	var exportfield = document.querySelector("#exportfield");
-	exportfield.onfocus = function() {
+	exportfield.onfocus = function () {
 		exportfield.select();
 	};
 
